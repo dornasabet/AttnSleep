@@ -42,7 +42,6 @@ class SEBasicBlock(nn.Module):
         self.se = SELayer(planes, reduction)
         self.downsample = downsample
         self.stride = stride
-        
 
     def forward(self, x):
         residual = x
@@ -62,23 +61,24 @@ class SEBasicBlock(nn.Module):
 
         return out
 
+
 class GELU(nn.Module):
     # for older versions of PyTorch.  For new versions you can use nn.GELU() instead.
     def __init__(self):
         super(GELU, self).__init__()
-        
+
     def forward(self, x):
         x = torch.nn.functional.gelu(x)
         return x
-        
-        
+
+
 class MRCNN(nn.Module):
     def __init__(self, afr_reduced_cnn_size):
         super(MRCNN, self).__init__()
         drate = 0.5
         self.GELU = GELU()  # for older versions of PyTorch.  For new versions use nn.GELU() instead.
         self.features1 = nn.Sequential(
-            nn.Conv1d(1, 64, kernel_size=50, stride=6, bias=False, padding=24),
+            nn.Conv1d(1, 64, kernel_size=10, stride=6, bias=False, padding=24),
             nn.BatchNorm1d(64),
             self.GELU,
             nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
@@ -92,11 +92,45 @@ class MRCNN(nn.Module):
             nn.BatchNorm1d(128),
             self.GELU,
 
-            nn.MaxPool1d(kernel_size=4, stride=4, padding=2)
+            nn.MaxPool1d(kernel_size=16, stride=16, padding=8)
+        )
+        self.features2 = nn.Sequential(
+            nn.Conv1d(1, 64, kernel_size=20, stride=6, bias=False, padding=24),
+            nn.BatchNorm1d(64),
+            self.GELU,
+            nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
+            nn.Dropout(drate),
+
+            nn.Conv1d(64, 128, kernel_size=8, stride=1, bias=False, padding=4),
+            nn.BatchNorm1d(128),
+            self.GELU,
+
+            nn.Conv1d(128, 128, kernel_size=8, stride=1, bias=False, padding=4),
+            nn.BatchNorm1d(128),
+            self.GELU,
+
+            nn.MaxPool1d(kernel_size=16, stride=16, padding=8)
+        )
+        self.features3 = nn.Sequential(
+            nn.Conv1d(1, 64, kernel_size=5, stride=5, bias=False, padding=24),
+            nn.BatchNorm1d(64),
+            self.GELU,
+            nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
+            nn.Dropout(drate),
+
+            nn.Conv1d(64, 128, kernel_size=8, stride=1, bias=False, padding=4),
+            nn.BatchNorm1d(128),
+            self.GELU,
+
+            nn.Conv1d(128, 128, kernel_size=8, stride=1, bias=False, padding=4),
+            nn.BatchNorm1d(128),
+            self.GELU,
+
+            nn.MaxPool1d(kernel_size=8, stride=8, padding=4)
         )
 
-        self.features2 = nn.Sequential(
-            nn.Conv1d(1, 64, kernel_size=400, stride=50, bias=False, padding=200),
+        self.features4 = nn.Sequential(
+            nn.Conv1d(1, 64, kernel_size=200, stride=50, bias=False, padding=100),
             nn.BatchNorm1d(64),
             self.GELU,
             nn.MaxPool1d(kernel_size=4, stride=2, padding=2),
@@ -110,8 +144,9 @@ class MRCNN(nn.Module):
             nn.BatchNorm1d(128),
             self.GELU,
 
-            nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
+            nn.MaxPool1d(kernel_size=4, stride=4, padding=2)
         )
+
         self.dropout = nn.Dropout(drate)
         self.inplanes = 128
         self.AFR = self._make_layer(SEBasicBlock, afr_reduced_cnn_size, 1)
@@ -134,12 +169,21 @@ class MRCNN(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        print(x.shape)
         x1 = self.features1(x)
+        print(x1.shape)
         x2 = self.features2(x)
-        x_concat = torch.cat((x1, x2), dim=2)
+        print(x2.shape)
+        x3 = self.features3(x)
+        print(x3.shape)
+        x4 = self.features4(x)
+        print(x4.shape)
+        x_concat = torch.cat((x1, x2, x3, x4), dim=2)
+        print(x_concat.shape)
         x_concat = self.dropout(x_concat)
         x_concat = self.AFR(x_concat)
         return x_concat
+
 
 ##########################################################################################
 
@@ -182,6 +226,7 @@ class CausalConv1d(torch.nn.Conv1d):
             return result[:, :, :-self.__padding]
         return result
 
+
 class MultiHeadedAttention(nn.Module):
     def __init__(self, h, d_model, afr_reduced_cnn_size, dropout=0.1):
         "Take in model size and number of heads."
@@ -199,7 +244,7 @@ class MultiHeadedAttention(nn.Module):
         nbatches = query.size(0)
 
         query = query.view(nbatches, -1, self.h, self.d_k).transpose(1, 2)
-        key   = self.convs[1](key).view(nbatches, -1, self.h, self.d_k).transpose(1, 2)
+        key = self.convs[1](key).view(nbatches, -1, self.h, self.d_k).transpose(1, 2)
         value = self.convs[2](value).view(nbatches, -1, self.h, self.d_k).transpose(1, 2)
 
         x, self.attn = attention(query, key, value, dropout=self.dropout)
@@ -270,6 +315,7 @@ class EncoderLayer(nn.Module):
     Made up of self-attention and a feed forward layer.
     Each of these sublayers have residual and layer norm, implemented by SublayerOutput.
     '''
+
     def __init__(self, size, self_attn, feed_forward, afr_reduced_cnn_size, dropout):
         super(EncoderLayer, self).__init__()
         self.self_attn = self_attn
@@ -277,7 +323,6 @@ class EncoderLayer(nn.Module):
         self.sublayer_output = clones(SublayerOutput(size, dropout), 2)
         self.size = size
         self.conv = CausalConv1d(afr_reduced_cnn_size, afr_reduced_cnn_size, kernel_size=7, stride=1, dilation=1)
-
 
     def forward(self, x_in):
         "Transformer Encoder"
@@ -300,20 +345,19 @@ class PositionwiseFeedForward(nn.Module):
         return self.w_2(self.dropout(F.relu(self.w_1(x))))
 
 
-
 class AttnSleep(nn.Module):
     def __init__(self):
         super(AttnSleep, self).__init__()
 
         N = 2  # number of TCE clones
         d_model = 80  # set to be 100 for SHHS dataset
-        d_ff = 120   # dimension of feed forward
+        d_ff = 120  # dimension of feed forward
         h = 5  # number of attention heads
         dropout = 0.1
         num_classes = 5
         afr_reduced_cnn_size = 30
 
-        self.mrcnn = MRCNN(afr_reduced_cnn_size) # use MRCNN_SHHS for SHHS dataset
+        self.mrcnn = MRCNN(afr_reduced_cnn_size)  # use MRCNN_SHHS for SHHS dataset
 
         attn = MultiHeadedAttention(h, d_model, afr_reduced_cnn_size)
         ff = PositionwiseFeedForward(d_model, d_ff, dropout)
@@ -327,6 +371,7 @@ class AttnSleep(nn.Module):
         encoded_features = encoded_features.contiguous().view(encoded_features.shape[0], -1)
         final_output = self.fc(encoded_features)
         return final_output
+
 
 ######################################################################
 
