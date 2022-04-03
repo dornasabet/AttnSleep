@@ -77,74 +77,92 @@ class MRCNN(nn.Module):
         super(MRCNN, self).__init__()
         drate = 0.5
         self.GELU = GELU()  # for older versions of PyTorch.  For new versions use nn.GELU() instead.
-        self.features1 = nn.Sequential(
-            nn.Conv1d(1, 64, kernel_size=10, stride=6, bias=False, padding=24),
-            nn.BatchNorm1d(64),
-            self.GELU,
-            nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
-            nn.Dropout(drate),
+        # self.features1 = nn.Sequential(
+        #     nn.Conv1d(1, 64, kernel_size=10, stride=6, bias=False, padding=24),
+        #     nn.BatchNorm1d(64),
+        #     self.GELU,
+        #     nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
+        #     nn.Dropout(drate),
+        #
+        #     nn.Conv1d(64, 128, kernel_size=8, stride=1, bias=False, padding=4),
+        #     nn.BatchNorm1d(128),
+        #     self.GELU,
+        #
+        #     nn.Conv1d(128, 128, kernel_size=8, stride=1, bias=False, padding=4),
+        #     nn.BatchNorm1d(128),
+        #     self.GELU,
+        #
+        #     nn.MaxPool1d(kernel_size=16, stride=16, padding=8)
+        # )
+        # self.features2 = nn.Sequential(
+        #     nn.Conv1d(1, 64, kernel_size=20, stride=6, bias=False, padding=24),
+        #     nn.BatchNorm1d(64),
+        #     self.GELU,
+        #     nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
+        #     nn.Dropout(drate),
+        #
+        #     nn.Conv1d(64, 128, kernel_size=8, stride=1, bias=False, padding=4),
+        #     nn.BatchNorm1d(128),
+        #     self.GELU,
+        #
+        #     nn.Conv1d(128, 128, kernel_size=8, stride=1, bias=False, padding=4),
+        #     nn.BatchNorm1d(128),
+        #     self.GELU,
+        #
+        #     nn.MaxPool1d(kernel_size=16, stride=16, padding=8)
+        # )
+        # self.features3 = nn.Sequential(
+        #     nn.Conv1d(1, 64, kernel_size=5, stride=5, bias=False, padding=24),
+        #     nn.BatchNorm1d(64),
+        #     self.GELU,
+        #     nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
+        #     nn.Dropout(drate),
+        #
+        #     nn.Conv1d(64, 128, kernel_size=8, stride=1, bias=False, padding=4),
+        #     nn.BatchNorm1d(128),
+        #     self.GELU,
+        #
+        #     nn.Conv1d(128, 128, kernel_size=8, stride=1, bias=False, padding=4),
+        #     nn.BatchNorm1d(128),
+        #     self.GELU,
+        #
+        #     nn.MaxPool1d(kernel_size=8, stride=8, padding=4)
+        # )
+        #
+        # self.features4 = nn.Sequential(
+        #     nn.Conv1d(1, 64, kernel_size=200, stride=50, bias=False, padding=100),
+        #     nn.BatchNorm1d(64),
+        #     self.GELU,
+        #     nn.MaxPool1d(kernel_size=4, stride=2, padding=2),
+        #     nn.Dropout(drate),
+        #
+        #     nn.Conv1d(64, 128, kernel_size=7, stride=1, bias=False, padding=3),
+        #     nn.BatchNorm1d(128),
+        #     self.GELU,
+        #
+        #     nn.Conv1d(128, 128, kernel_size=7, stride=1, bias=False, padding=3),
+        #     nn.BatchNorm1d(128),
+        #     self.GELU,
+        #
+        #     nn.MaxPool1d(kernel_size=4, stride=4, padding=2)
+        # )
 
-            nn.Conv1d(64, 128, kernel_size=8, stride=1, bias=False, padding=4),
-            nn.BatchNorm1d(128),
-            self.GELU,
-
-            nn.Conv1d(128, 128, kernel_size=8, stride=1, bias=False, padding=4),
-            nn.BatchNorm1d(128),
-            self.GELU,
-
-            nn.MaxPool1d(kernel_size=16, stride=16, padding=8)
-        )
         self.features2 = nn.Sequential(
-            nn.Conv1d(1, 64, kernel_size=20, stride=6, bias=False, padding=24),
-            nn.BatchNorm1d(64),
-            self.GELU,
-            nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
-            nn.Dropout(drate),
-
-            nn.Conv1d(64, 128, kernel_size=8, stride=1, bias=False, padding=4),
-            nn.BatchNorm1d(128),
-            self.GELU,
-
-            nn.Conv1d(128, 128, kernel_size=8, stride=1, bias=False, padding=4),
-            nn.BatchNorm1d(128),
-            self.GELU,
-
-            nn.MaxPool1d(kernel_size=16, stride=16, padding=8)
-        )
-        self.features3 = nn.Sequential(
-            nn.Conv1d(1, 64, kernel_size=5, stride=5, bias=False, padding=24),
-            nn.BatchNorm1d(64),
-            self.GELU,
-            nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
-            nn.Dropout(drate),
-
-            nn.Conv1d(64, 128, kernel_size=8, stride=1, bias=False, padding=4),
-            nn.BatchNorm1d(128),
-            self.GELU,
-
-            nn.Conv1d(128, 128, kernel_size=8, stride=1, bias=False, padding=4),
-            nn.BatchNorm1d(128),
-            self.GELU,
-
-            nn.MaxPool1d(kernel_size=8, stride=8, padding=4)
-        )
-
-        self.features4 = nn.Sequential(
-            nn.Conv1d(1, 64, kernel_size=200, stride=50, bias=False, padding=100),
+            nn.Conv1d(1, 64, kernel_size=400, stride=10, bias=False, padding=200),
             nn.BatchNorm1d(64),
             self.GELU,
             nn.MaxPool1d(kernel_size=4, stride=2, padding=2),
             nn.Dropout(drate),
 
-            nn.Conv1d(64, 128, kernel_size=7, stride=1, bias=False, padding=3),
+            nn.Conv1d(64, 128, kernel_size=6, stride=1, bias=False, padding=5),
             nn.BatchNorm1d(128),
             self.GELU,
 
-            nn.Conv1d(128, 128, kernel_size=7, stride=1, bias=False, padding=3),
+            nn.Conv1d(128, 128, kernel_size=6, stride=1, bias=False, padding=4),
             nn.BatchNorm1d(128),
             self.GELU,
 
-            nn.MaxPool1d(kernel_size=4, stride=4, padding=2)
+            nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
         )
 
         self.dropout = nn.Dropout(drate)
@@ -168,22 +186,33 @@ class MRCNN(nn.Module):
 
         return nn.Sequential(*layers)
 
+    # def forward(self, x):
+    #     # print(x.shape)
+    #     x1 = self.features1(x)
+    #     # print(x1.shape)
+    #     x2 = self.features2(x)
+    #     # print(x2.shape)
+    #     x3 = self.features3(x)
+    #     # print(x3.shape)
+    #     x4 = self.features4(x)
+    #     # print(x4.shape)
+    #     x_concat = torch.cat((x1, x2, x3, x4), dim=2)
+    #     # print(x_concat.shape)
+    #     x_concat = self.dropout(x_concat)
+    #     x_concat = self.AFR(x_concat)
+    #     return x_concat
     def forward(self, x):
-        print(x.shape)
-        x1 = self.features1(x)
-        print(x1.shape)
+        # x1 = self.features1(x)
+        # x2 = self.features2(x)
+        # x_concat = torch.cat((x1, x2), dim=2)
+        # x_concat = self.dropout(x_concat)
+        # x_concat = self.AFR(x_concat)
         x2 = self.features2(x)
         print(x2.shape)
-        x3 = self.features3(x)
-        print(x3.shape)
-        x4 = self.features4(x)
-        print(x4.shape)
-        x_concat = torch.cat((x1, x2, x3, x4), dim=2)
-        print(x_concat.shape)
-        x_concat = self.dropout(x_concat)
+        # x_concat = torch.cat((x1, x2), dim=2)
+        x_concat = self.dropout(x2)
         x_concat = self.AFR(x_concat)
         return x_concat
-
 
 ##########################################################################################
 
@@ -405,15 +434,15 @@ class MRCNN_SHHS(nn.Module):
             nn.MaxPool1d(kernel_size=4, stride=2, padding=2),
             nn.Dropout(drate),
 
-            nn.Conv1d(64, 128, kernel_size=6, stride=1, bias=False, padding=3),
+            nn.Conv1d(64, 128, kernel_size=6, stride=1, bias=False, padding=4),
             nn.BatchNorm1d(128),
             self.GELU,
 
-            nn.Conv1d(128, 128, kernel_size=6, stride=1, bias=False, padding=3),
+            nn.Conv1d(128, 128, kernel_size=6, stride=1, bias=False, padding=4),
             nn.BatchNorm1d(128),
             self.GELU,
 
-            nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
+            nn.MaxPool1d(kernel_size=2, stride=2, padding=2)
         )
         self.dropout = nn.Dropout(drate)
         self.inplanes = 128
