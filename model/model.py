@@ -147,24 +147,40 @@ class MRCNN(nn.Module):
         #     nn.MaxPool1d(kernel_size=4, stride=4, padding=2)
         # )
 
-        self.features2 = nn.Sequential(
-            nn.Conv1d(1, 64, kernel_size=400, stride=10, bias=False, padding=200),
+        # self.features2 = nn.Sequential(
+        #     nn.Conv1d(1, 64, kernel_size=400, stride=10, bias=False, padding=200),
+        #     nn.BatchNorm1d(64),
+        #     self.GELU,
+        #     nn.MaxPool1d(kernel_size=4, stride=2, padding=2),
+        #     nn.Dropout(drate),
+        #
+        #     nn.Conv1d(64, 128, kernel_size=6, stride=1, bias=False, padding=5),
+        #     nn.BatchNorm1d(128),
+        #     self.GELU,
+        #
+        #     nn.Conv1d(128, 128, kernel_size=6, stride=1, bias=False, padding=4),
+        #     nn.BatchNorm1d(128),
+        #     self.GELU,
+        #
+        #     nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
+        # )
+        self.features1 = nn.Sequential(
+            nn.Conv1d(1, 64, kernel_size=50, stride=5, bias=False, padding=24),
             nn.BatchNorm1d(64),
             self.GELU,
-            nn.MaxPool1d(kernel_size=4, stride=2, padding=2),
+            nn.MaxPool1d(kernel_size=8, stride=2, padding=4),
             nn.Dropout(drate),
 
-            nn.Conv1d(64, 128, kernel_size=6, stride=1, bias=False, padding=5),
+            nn.Conv1d(64, 128, kernel_size=8, stride=1, bias=False, padding=8),
             nn.BatchNorm1d(128),
             self.GELU,
 
-            nn.Conv1d(128, 128, kernel_size=6, stride=1, bias=False, padding=4),
+            nn.Conv1d(128, 128, kernel_size=8, stride=1, bias=False, padding=8),
             nn.BatchNorm1d(128),
             self.GELU,
 
-            nn.MaxPool1d(kernel_size=2, stride=2, padding=1)
+            nn.MaxPool1d(kernel_size=4, stride=4, padding=2)
         )
-
         self.dropout = nn.Dropout(drate)
         self.inplanes = 128
         self.AFR = self._make_layer(SEBasicBlock, afr_reduced_cnn_size, 1)
@@ -207,12 +223,13 @@ class MRCNN(nn.Module):
         # x_concat = torch.cat((x1, x2), dim=2)
         # x_concat = self.dropout(x_concat)
         # x_concat = self.AFR(x_concat)
-        x2 = self.features2(x)
-        print(x2.shape)
+        x1 = self.features1(x)
+        print(x1.shape)
         # x_concat = torch.cat((x1, x2), dim=2)
-        x_concat = self.dropout(x2)
+        x_concat = self.dropout(x1)
         x_concat = self.AFR(x_concat)
         return x_concat
+
 
 ##########################################################################################
 
